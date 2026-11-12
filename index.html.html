@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="ru" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Христианская церковь «Благодать»</title>
+    <!-- Подключаем Tailwind CSS для современного и быстрого адаптивного дизайна -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        church: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#0f172a',
+                            cream: '#fdfbf7',
+                            sand: '#f4ede2',
+                            accent: '#3b82f6',
+                            gold: '#d97706'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Подключаем шрифты Inter и FontAwesome для иконок -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fdfbf7;
+            color: #1e293b;
+        }
+        h1, h2, h3, .font-serif {
+            font-family: 'Playfair Display', serif;
+        }
+        /* Стили для модальных окон книги и уведомлений */
+        .modal {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-church-cream antialiased selection:bg-church-accent selection:text-white">
+
+    <!-- Уведомление / Тост -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+        <span id="toast-message" class="text-sm font-medium">Действие выполнено успешно!</span>
+    </div>
+
+    <!-- Модальное окно подписки -->
+    <div id="subscribe-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden modal">
+        <div class="bg-white rounded-2xl max-w-md w-full mx-4 p-6 shadow-2xl border border-slate-100">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-slate-900 font-serif">Подписка на новости церкви</h3>
+                <button onclick="toggleSubscribeModal(false)" class="text-slate-400 hover:text-slate-600 p-2 rounded-lg">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <p class="text-slate-600 text-sm mb-4">Получайте еженедельное расписание богослужений, новые проповеди и анонсы мероприятий прямо на почту.</p>
+            <form onsubmit="handleSubscribe(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Ваш Email</label>
+                    <input type="email" required placeholder="example@mail.ru" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-church-accent text-sm">
+                </div>
+                <button type="submit" class="w-full py-3 bg-church-600 hover:bg-church-700 text-white font-medium rounded-xl transition shadow-lg shadow-blue-500/20 text-sm">
+                    Подписаться на рассылку
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно чтения книги онлайн -->
+    <div id="reader-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm hidden modal">
+        <div class="bg-white rounded-2xl max-w-3xl w-full mx-4 h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+            <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
+                <h3 id="reader-title" class="text-lg font-serif font-semibold">Название книги</h3>
+                <button onclick="closeReader()" class="text-slate-300 hover:text-white p-2">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div id="reader-content" class="p-8 flex-1 overflow-y-auto prose max-w-none text-slate-700 leading-relaxed bg-slate-50">
+                <!-- Динамический текст для чтения -->
+            </div>
+            <div class="px-6 py-4 bg-white border-t border-slate-200 flex justify-between items-center text-sm text-slate-500">
+                <span>Электронная библиотека церкви «Благодать»</span>
+                <button onclick="closeReader()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-medium rounded-lg transition">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Шапка сайта (Header) -->
+    <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <!-- Логотип -->
+            <a href="#" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 group-hover:scale-105 transition">
+                    <i class="fa-solid fa-church text-lg"></i>
+                </div>
+                <div>
+                    <span class="block font-serif text-lg font-bold text-slate-900 tracking-tight leading-none">Благодать</span>
+                    <span class="text-xs text-slate-500 font-medium tracking-wide">Христианская церковь</span>
+                </div>
+            </a>
+
+            <!-- Навигация (ПК) -->
+            <nav class="hidden lg:flex items-center gap-8 font-medium text-sm text-slate-600">
+                <a href="#hero" class="hover:text-church-600 transition">Главная</a>
+                <a href="#about" class="hover:text-church-600 transition">О нас</a>
+                <a href="#services-media" class="hover:text-church-600 transition">Богослужения</a>
+                <a href="#ministries" class="hover:text-church-600 transition">Служения</a>
+                <a href="#gallery" class="hover:text-church-600 transition">Галерея</a>
+                <a href="#library" class="hover:text-church-600 transition">Библиотека</a>
+                <a href="#contacts" class="hover:text-church-600 transition">Контакты</a>
+            </nav>
+
+            <!-- Кнопки справа -->
+            <div class="hidden sm:flex items-center gap-3">
+                <button onclick="toggleSubscribeModal(true)" class="px-5 py-2.5 bg-church-600 hover:bg-church-700 text-white text-sm font-medium rounded-xl transition shadow-md shadow-blue-500/20 flex items-center gap-2">
+                    <i class="fa-regular fa-bell"></i>
+                    <span>Подписаться</span>
+                </button>
+            </div>
+
+            <!-- Гамбургер для мобилок -->
+            <button onclick="toggleMobileMenu()" class="lg:hidden p-2.5 text-slate-700 hover:text-church-600 rounded-xl focus:outline-none">
+                <i id="mobile-menu-icon" class="fa-solid fa-bars text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Мобильное меню -->
+        <div id="mobile-menu" class="lg:hidden hidden bg-white border-b border-slate-200 px-6 py-6 space-y-4 shadow-xl">
+            <a href="#hero" onclick="toggleMobileMenu()" class="block font-medium text-slate-700 hover:text-church-600">Главная</a>
+            <a href="#about" onclick="toggleMobileMenu()" class="block font-medium text-slate-700 hover:text-church-600">О нас</a>
+            <a href="#services-media" onclick="toggleMobileMenu()" class="block font-medium text-slate-700 hover:text-church-600">Богослужения</a>
+            <a href="#ministries" onclick="toggleMobileMenu()" class="block font-medium text-slate-700 hover:text-church-600">Служения</a>
+            <a href="#gallery" onclick="toggleMobileMenu()" class="block font-medium text-slate-700 hover:text-church-600">Галерея</a>
+            <a href="#library" onclick="toggleMobileMenu()" class="block font-medium text-slate-700 hover:text-church-600">Библиотека</a>
+            <a href="#contacts" onclick="toggleMobileMenu()" class="block font-medium text-slate-700 hover:text-church-600">Контакты</a>
+            <div class="pt-4 border-t border-slate-100 flex flex-col gap-3">
+                <button onclick="toggleSubscribeModal(true); toggleMobileMenu();" class="w-full py-3 bg-church-600 text-white font-medium rounded-xl text-center shadow-md">
+                    Подписаться
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Главный экран (Hero Section) -->
+    <section id="hero" class="relative py-20 lg:py-32 overflow-hidden bg-gradient-to-b from-church-sand/60 to-church-cream">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 bg-blue-50 text-church-600 rounded-full text-xs font-semibold tracking-wide uppercase">
+                        <i class="fa-solid fa-heart"></i>
+                        <span>Открыты для каждого</span>
+                    </div>
+                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 font-serif leading-tight">
+                        Добро пожаловать в нашу церковь
+                    </h1>
+                    <p class="text-lg text-slate-600 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+                        «Ибо где двое или трое собраны во имя Мое, там Я посреди них». Место духовного тепла, надежды, искренней веры и поддержки каждого человека.
+                    </p>
+                    <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
+                        <a href="#services-media" class="w-full sm:w-auto px-8 py-4 bg-church-600 hover:bg-church-700 text-white font-medium rounded-xl transition shadow-lg shadow-blue-500/25 text-center flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-video"></i>
+                            <span>Смотреть трансляции</span>
+                        </a>
+                        <a href="#contacts" class="w-full sm:w-auto px-8 py-4 bg-white hover:bg-slate-50 text-slate-800 font-medium rounded-xl transition border border-slate-200 text-center shadow-sm">
+                            Как нас найти
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Карточка расписания на главном экране -->
+                <div class="lg:col-span-5">
+                    <div class="bg-white rounded-3xl p-8 shadow-xl border border-slate-100 relative">
+                        <div class="absolute -top-4 -right-4 w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center text-amber-600 font-serif font-bold text-xl">
+                            <i class="fa-solid fa-calendar-days"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold font-serif text-slate-900 mb-2">Ближайшие встречи</h3>
+                        <p class="text-slate-500 text-sm mb-6">Присоединяйтесь к нашим богослужениям лично или онлайн.</p>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-start gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                                <div class="w-12 h-12 rounded-xl bg-blue-100 text-church-600 flex items-center justify-center font-bold shrink-0">
+                                    ВС
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-slate-900 text-sm">Воскресное богослужение</h4>
+                                    <p class="text-xs text-slate-500 mt-0.5">Каждое воскресенье в 10:00</p>
+                                    <span class="inline-block mt-2 text-xs font-semibold text-church-600 bg-blue-50 px-2.5 py-1 rounded-md">Главный зал / Онлайн</span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                                <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold shrink-0">
+                                    СР
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-slate-900 text-sm">Молитвенный вечер</h4>
+                                    <p class="text-xs text-slate-500 mt-0.5">Каждую среду в 18:30</p>
+                                    <span class="inline-block mt-2 text-xs font-semibold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-md">Малый зал</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- О нас (About Us) -->
+    <section id="about" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-xs font-semibold uppercase tracking-wider text-church-600 bg-blue-50 px-3 py-1 rounded-full">О нашей общине</span>
+                <h2 class="text-3xl sm:text-4xl font-bold font-serif text-slate-900 mt-3 mb-4">Церковь, где каждый обретает семью</h2>
+                <p class="text-slate-600">Мы верим, что Божья любовь способна изменить любую жизнь. Наша миссия — нести свет Евангелия, помогать нуждающимся и созидать крепкие христианские семьи.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+                <div class="bg-church-cream rounded-2xl p-8 border border-slate-100 text-center">
+                    <div class="w-14 h-14 bg-white rounded-2xl shadow-sm text-church-600 flex items-center justify-center text-2xl mx-auto mb-6">
+                        <i class="fa-solid fa-hands-praying"></i>
+                    </div>
+                    <h3 class="text-xl font-bold font-serif text-slate-900 mb-3">Наша Миссия</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">Помогать людям познать Бога, возрастать в вере и служить ближним с открытым сердцем и любовью.</p>
+                </div>
+
+                <div class="bg-church-cream rounded-2xl p-8 border border-slate-100 text-center">
+                    <div class="w-14 h-14 bg-white rounded-2xl shadow-sm text-church-600 flex items-center justify-center text-2xl mx-auto mb-6">
+                        <i class="fa-solid fa-book-bible"></i>
+                    </div>
+                    <h3 class="text-xl font-bold font-serif text-slate-900 mb-3">Вероучение</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">Библия — непогрешимое Слово Божье. Спасение дается по благодати через веру в Иисуса Христа нашего Спасителя.</p>
+                </div>
+
+                <div class="bg-church-cream rounded-2xl p-8 border border-slate-100 text-center">
+                    <div class="w-14 h-14 bg-white rounded-2xl shadow-sm text-church-600 flex items-center justify-center text-2xl mx-auto mb-6">
+                        <i class="fa-solid fa-people-group"></i>
+                    </div>
+                    <h3 class="text-xl font-bold font-serif text-slate-900 mb-3">Единство</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">Мы открытая община для всех возрастов, национальностей и жизненных историй. Здесь вам всегда рады.</p>
+                </div>
+            </div>
+
+            <!-- Приветствие пастора -->
+            <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-3xl p-8 lg:p-12 shadow-xl flex flex-col lg:flex-row items-center gap-8">
+                <div class="w-36 h-36 lg:w-48 lg:h-48 rounded-2xl overflow-hidden shrink-0 border-4 border-white/20 shadow-lg">
+                    <img src="https://placehold.co/300x300/1e293b/ffffff?text=Пастор" alt="Пастор церкви" class="w-full h-full object-cover">
+                </div>
+                <div class="space-y-4 text-center lg:text-left">
+                    <span class="text-amber-400 text-xs font-semibold tracking-wider uppercase">Слово пастора</span>
+                    <h3 class="text-2xl lg:text-3xl font-serif font-bold">«Дорогие друзья, добро пожаловать!»</h3>
+                    <p class="text-slate-300 text-sm lg:text-base leading-relaxed">
+                        Независимо от того, где вы находитесь в своем духовном путешествии, знайте — Бог любит вас, и в нашей церкви для вас всегда открыта дверь. Приходите на наши богослужения, давайте расти в вере вместе!
+                    </p>
+                    <div class="pt-2">
+                        <span class="font-serif font-bold text-lg">Михаил Петров</span>
+                        <span class="block text-xs text-slate-400">Старший пастор церкви «Благодать»</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Богослужения и Медиа (Services & Media) -->
+    <section id="services-media" class="py-20 bg-church-cream">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-xs font-semibold uppercase tracking-wider text-church-600 bg-blue-50 px-3 py-1 rounded-full">Богослужения и медиа</span>
+                <h2 class="text-3xl sm:text-4xl font-bold font-serif text-slate-900 mt-3 mb-4">Слушайте проповеди и присоединяйтесь онлайн</h2>
+                <p class="text-slate-600">Если вы не можете посетить церковь лично, мы ведем прямые трансляции и сохраняем записи всех воскресных проповедей.</p>
+            </div>
+
+            <!-- Блок трансляции / видео плеера -->
+            <div class="bg-white rounded-3xl overflow-hidden shadow-xl border border-slate-100 mb-12">
+                <div class="grid grid-cols-1 lg:grid-cols-12 items-center">
+                    <div class="lg:col-span-7 bg-slate-900 relative aspect-video flex items-center justify-center group cursor-pointer" onclick="showToast('Запуск видеопотока...')">
+                        <img src="https://placehold.co/800x450/0f172a/ffffff?text=Трансляция+Богослужения" alt="Прямая трансляция" class="w-full h-full object-cover opacity-80 group-hover:opacity-90 transition">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="w-20 h-20 bg-red-600 rounded-full flex items-center justify-center text-white text-2xl shadow-2xl group-hover:scale-110 transition">
+                                <i class="fa-solid fa-play ml-1"></i>
+                            </div>
+                        </div>
+                        <div class="absolute top-4 left-4 bg-red-600/90 text-white text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                            Прямой эфир / Запись
+                        </div>
+                    </div>
+                    <div class="lg:col-span-5 p-8 lg:p-10 space-y-6">
+                        <h3 class="text-2xl font-serif font-bold text-slate-900">Сила прощения и Божьей благодати</h3>
+                        <p class="text-slate-600 text-sm leading-relaxed">Воскресная проповедь старшего пастора. Размышления над Священным Писанием и практическое применение истины в повседневной жизни.</p>
+                        <div class="space-y-3 pt-2">
+                            <div class="flex items-center gap-3 text-sm text-slate-600">
+                                <i class="fa-solid fa-calendar text-church-600 w-5"></i>
+                                <span>Воскресенье, 10 ноября</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-sm text-slate-600">
+                                <i class="fa-solid fa-user-tie text-church-600 w-5"></i>
+                                <span>Пастор Михаил Петров</span>
+                            </div>
+                        </div>
+                        <div class="pt-4 flex gap-4">
+                            <button onclick="showToast('Открытие видео на YouTube')" class="px-6 py-3 bg-church-600 hover:bg-church-700 text-white text-sm font-medium rounded-xl transition shadow-md shadow-blue-500/20">
+                                Смотреть на YouTube
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Расписание встреч -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                    <div class="w-12 h-12 bg-blue-50 text-church-600 rounded-xl flex items-center justify-center text-lg mb-4">
+                        <i class="fa-solid fa-church"></i>
+                    </div>
+                    <h4 class="font-bold text-lg text-slate-900 mb-2 font-serif">Воскресное собрание</h4>
+                    <p class="text-slate-600 text-sm mb-4">Общая молитва, прославление хора, разбор Слова и общение за чашкой чая.</p>
+                    <span class="text-xs font-semibold text-church-600">Каждое вс, 10:00</span>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                    <div class="w-12 h-12 bg-blue-50 text-church-600 rounded-xl flex items-center justify-center text-lg mb-4">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <h4 class="font-bold text-lg text-slate-900 mb-2 font-serif">Домашние группы</h4>
+                    <p class="text-slate-600 text-sm mb-4">Уютные встречи по домам для изучения Библии, молитвы друг за друга и близкого общения.</p>
+                    <span class="text-xs font-semibold text-church-600">По средам и четвергам</span>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                    <div class="w-12 h-12 bg-blue-50 text-church-600 rounded-xl flex items-center justify-center text-lg mb-4">
+                        <i class="fa-solid fa-child-reaching"></i>
+                    </div>
+                    <h4 class="font-bold text-lg text-slate-900 mb-2 font-serif">Молодежь и дети</h4>
+                    <p class="text-slate-600 text-sm mb-4">Воскресная школа для детей и интерактивные вечера для подростков и молодежи.</p>
+                    <span class="text-xs font-semibold text-church-600">Каждое воскресенье в 11:30</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Служения церкви (Ministries) -->
+    <section id="ministries" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-xs font-semibold uppercase tracking-wider text-church-600 bg-blue-50 px-3 py-1 rounded-full">Служение людям</span>
+                <h2 class="text-3xl sm:text-4xl font-bold font-serif text-slate-900 mt-3 mb-4">Направления нашей работы</h2>
+                <p class="text-slate-600">Каждый человек может найти здесь дело по душе, чтобы послужить своими талантами и дарами.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="bg-church-cream rounded-2xl p-6 border border-slate-100 flex flex-col justify-between hover:shadow-lg transition">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-blue-100 text-church-600 flex items-center justify-center text-xl mb-4">
+                            <i class="fa-solid fa-child"></i>
+                        </div>
+                        <h3 class="font-serif font-bold text-xl text-slate-900 mb-2">Воскресная школа</h3>
+                        <p class="text-slate-600 text-sm mb-6">Увлекательные занятия для детей, где через библейские истории они учатся добру, дружбе и вере.</p>
+                    </div>
+                    <button onclick="showToast('Подробнее о Воскресной школе')" class="text-church-600 font-semibold text-sm flex items-center gap-2 hover:gap-3 transition-all">
+                        <span>Узнать больше</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+
+                <div class="bg-church-cream rounded-2xl p-6 border border-slate-100 flex flex-col justify-between hover:shadow-lg transition">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-xl mb-4">
+                            <i class="fa-solid fa-guitar"></i>
+                        </div>
+                        <h3 class="font-serif font-bold text-xl text-slate-900 mb-2">Музыкальное служение</h3>
+                        <p class="text-slate-600 text-sm mb-6">Группа прославления и хор, которые ведут общину в искреннем поклонении Богу через пение.</p>
+                    </div>
+                    <button onclick="showToast('Подробнее о Музыкальном служении')" class="text-church-600 font-semibold text-sm flex items-center gap-2 hover:gap-3 transition-all">
+                        <span>Узнать больше</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+
+                <div class="bg-church-cream rounded-2xl p-6 border border-slate-100 flex flex-col justify-between hover:shadow-lg transition">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-xl mb-4">
+                            <i class="fa-solid fa-fire"></i>
+                        </div>
+                        <h3 class="font-serif font-bold text-xl text-slate-900 mb-2">Молодежное</h3>
+                        <p class="text-slate-600 text-sm mb-6">Энергичное сообщество подростков и молодежи: общение, дискуссии на важные темы, выезды и творчество.</p>
+                    </div>
+                    <button onclick="showToast('Подробнее о Молодежном служении')" class="text-church-600 font-semibold text-sm flex items-center gap-2 hover:gap-3 transition-all">
+                        <span>Узнать больше</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+
+                <div class="bg-church-cream rounded-2xl p-6 border border-slate-100 flex flex-col justify-between hover:shadow-lg transition">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl mb-4">
+                            <i class="fa-solid fa-hand-holding-heart"></i>
+                        </div>
+                        <h3 class="font-serif font-bold text-xl text-slate-900 mb-2">Благотворительность</h3>
+                        <p class="text-slate-600 text-sm mb-6">Социальная помощь нуждающимся, сбор вещей, продуктовая поддержка пожилых людей и многодетных семей.</p>
+                    </div>
+                    <button onclick="showToast('Подробнее о Благотворительности')" class="text-church-600 font-semibold text-sm flex items-center gap-2 hover:gap-3 transition-all">
+                        <span>Узнать больше</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Фотогалерея (Gallery) -->
+    <section id="gallery" class="py-20 bg-church-cream">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-xs font-semibold uppercase tracking-wider text-church-600 bg-blue-50 px-3 py-1 rounded-full">Жизнь общины</span>
+                <h2 class="text-3xl sm:text-4xl font-bold font-serif text-slate-900 mt-3 mb-4">Фотогалерея церкви</h2>
+                <p class="text-slate-600">Яркие моменты наших праздников, богослужений, крещений и совместных мероприятий.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="group relative rounded-2xl overflow-hidden shadow-md aspect-[4/3] bg-slate-200 cursor-pointer" onclick="showToast('Просмотр фотографии')">
+                    <img src="https://placehold.co/600x450/1e293b/ffffff?text=Воскресное+служение" alt="Воскресное служение" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex items-end p-6">
+                        <span class="text-white font-medium text-sm">Воскресное богослужение в главном зале</span>
+                    </div>
+                </div>
+
+                <div class="group relative rounded-2xl overflow-hidden shadow-md aspect-[4/3] bg-slate-200 cursor-pointer" onclick="showToast('Просмотр фотографии')">
+                    <img src="https://placehold.co/600x450/334155/ffffff?text=Крещение" alt="Крещение" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex items-end p-6">
+                        <span class="text-white font-medium text-sm">Водное крещение новых верующих</span>
+                    </div>
+                </div>
+
+                <div class="group relative rounded-2xl overflow-hidden shadow-md aspect-[4/3] bg-slate-200 cursor-pointer" onclick="showToast('Просмотр фотографии')">
+                    <img src="https://placehold.co/600x450/475569/ffffff?text=Молодежный+вечер" alt="Молодежный вечер" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex items-end p-6">
+                        <span class="text-white font-medium text-sm">Молодежная встреча и общение</span>
+                    </div>
+                </div>
+
+                <div class="group relative rounded-2xl overflow-hidden shadow-md aspect-[4/3] bg-slate-200 cursor-pointer" onclick="showToast('Просмотр фотографии')">
+                    <img src="https://placehold.co/600x450/64748b/ffffff?text=Воскресная+школа" alt="Воскресная школа" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex items-end p-6">
+                        <span class="text-white font-medium text-sm">Занятия в Воскресной школе для детей</span>
+                    </div>
+                </div>
+
+                <div class="group relative rounded-2xl overflow-hidden shadow-md aspect-[4/3] bg-slate-200 cursor-pointer" onclick="showToast('Просмотр фотографии')">
+                    <img src="https://placehold.co/600x450/0f172a/ffffff?text=Благотворительность" alt="Благотворительность" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex items-end p-6">
+                        <span class="text-white font-medium text-sm">Благотворительная акция помощи</span>
+                    </div>
+                </div>
+
+                <div class="group relative rounded-2xl overflow-hidden shadow-md aspect-[4/3] bg-slate-200 cursor-pointer" onclick="showToast('Просмотр фотографии')">
+                    <img src="https://placehold.co/600x450/1e293b/ffffff?text=Праздник+Жатвы" alt="Праздник Жатвы" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex items-end p-6">
+                        <span class="text-white font-medium text-sm">Праздничное богослужение Благодарения</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Духовная библиотека (Library) -->
+    <section id="library" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <span class="text-xs font-semibold uppercase tracking-wider text-church-600 bg-blue-50 px-3 py-1 rounded-full">Христианская литература</span>
+                <h2 class="text-3xl sm:text-4xl font-bold font-serif text-slate-900 mt-3 mb-4">Духовная библиотека</h2>
+                <p class="text-slate-600 mb-6">Читайте книги онлайн или скачивайте их на свои устройства для укрепления веры и духовного роста.</p>
+                
+                <!-- Интерактивный счетчик использования ресурсов библиотеки -->
+                <div class="inline-flex items-center gap-3 px-5 py-2.5 bg-church-cream rounded-full border border-slate-200 shadow-sm text-sm font-medium text-slate-700">
+                    <i class="fa-solid fa-chart-line text-church-600"></i>
+                    <span>Ресурсами библиотеки воспользовались: <strong id="library-counter" class="text-church-600 font-bold">142</strong> раз(а)</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Книга 1 -->
+                <div class="bg-church-cream rounded-2xl p-6 border border-slate-100 flex flex-col justify-between shadow-sm">
+                    <div>
+                        <div class="h-56 rounded-xl overflow-hidden mb-6 bg-slate-200 shadow-inner">
+                            <img src="https://placehold.co/400x550/1e293b/ffffff?text=Путь+к+Себе" alt="Обложка книги" class="w-full h-full object-cover">
+                        </div>
+                        <span class="text-xs font-semibold text-church-600 uppercase tracking-wide">Богословие</span>
+                        <h3 class="font-serif font-bold text-xl text-slate-900 mt-1 mb-2">Жизнь по вере в современном мире</h3>
+                        <p class="text-slate-500 text-xs mb-3">Автор: Пастор Джонсон</p>
+                        <p class="text-slate-600 text-sm mb-6">Практическое руководство для верующих о том, как сохранять духовные ориентиры и мир в сердце посреди суеты.</p>
+                    </div>
+                    <div class="flex items-center gap-3 pt-4 border-t border-slate-200/60">
+                        <button onclick="openReader('Жизнь по вере в современном мире', 'Глава 1. Основы несокрушимой веры...\n\nВ современном мире легко потерять внутренний покой из-за бесконечного потока новостей и забот. Однако Слово Божье напоминает нам: «Уповайте на Господа во всякое время». Настоящая вера проверяется не в тишине, а в штормах...') " class="flex-1 py-2.5 bg-church-600 hover:bg-church-700 text-white font-medium rounded-xl text-xs transition shadow-sm text-center">
+                            <i class="fa-solid fa-book-open mr-1.5"></i> Читать
+                        </button>
+                        <button onclick="downloadBook('Жизнь по вере в современном мире')" class="px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-800 font-medium rounded-xl text-xs transition border border-slate-200 shadow-sm" title="Скачать PDF">
+                            <i class="fa-solid fa-download"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Книга 2 -->
+                <div class="bg-church-cream rounded-2xl p-6 border border-slate-100 flex flex-col justify-between shadow-sm">
+                    <div>
+                        <div class="h-56 rounded-xl overflow-hidden mb-6 bg-slate-200 shadow-inner">
+                            <img src="https://placehold.co/400x550/334155/ffffff?text=Сила+Молитвы" alt="Обложка книги" class="w-full h-full object-cover">
+                        </div>
+                        <span class="text-xs font-semibold text-church-600 uppercase tracking-wide">Молитвенная жизнь</span>
+                        <h3 class="font-serif font-bold text-xl text-slate-900 mt-1 mb-2">Сила дерзновенной молитвы</h3>
+                        <p class="text-slate-500 text-xs mb-3">Автор: Эдуард Баундс</p>
+                        <p class="text-slate-600 text-sm mb-6">Классическое произведение о глубоких молитвенных взаимоотношениях с Создателем и силе ходатайства.</p>
+                    </div>
+                    <div class="flex items-center gap-3 pt-4 border-t border-slate-200/60">
+                        <button onclick="openReader('Сила дерзновенной молитвы', 'Глава 1. Значение молитвы в жизни христианина...\n\nМолитва — это дыхание духовного человека. Без общения с Отцом наша вера иссушается. Истинная молитва меняет обстоятельства и преображает характер человека...') " class="flex-1 py-2.5 bg-church-600 hover:bg-church-700 text-white font-medium rounded-xl text-xs transition shadow-sm text-center">
+                            <i class="fa-solid fa-book-open mr-1.5"></i> Читать
+                        </button>
+                        <button onclick="downloadBook('Сила дерзновенной молитвы')" class="px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-800 font-medium rounded-xl text-xs transition border border-slate-200 shadow-sm" title="Скачать PDF">
+                            <i class="fa-solid fa-download"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Книга 3 -->
+                <div class="bg-church-cream rounded-2xl p-6 border border-slate-100 flex flex-col justify-between shadow-sm">
+                    <div>
+                        <div class="h-56 rounded-xl overflow-hidden mb-6 bg-slate-200 shadow-inner">
+                            <img src="https://placehold.co/400x550/475569/ffffff?text=Детская+Библия" alt="Обложка книги" class="w-full h-full object-cover">
+                        </div>
+                        <span class="text-xs font-semibold text-church-600 uppercase tracking-wide">Для детей</span>
+                        <h3 class="font-serif font-bold text-xl text-slate-900 mt-1 mb-2">Любимые библейские истории в картинках</h3>
+                        <p class="text-slate-500 text-xs mb-3">Автор: Команда Воскресной школы</p>
+                        <p class="text-slate-600 text-sm mb-6">Яркая и понятная книга для совместного чтения с детьми, знакомящая их с великими библейскими героями.</p>
+                    </div>
+                    <div class="flex items-center gap-3 pt-4 border-t border-slate-200/60">
+                        <button onclick="openReader('Любимые библейские истории в картинках', 'Введение для детей и родителей...\n\nДорогие ребята! В этой книге собраны самые удивительные и добрые истории о том, как Бог любил Свой народ, творил чудеса и заботился о каждом...') " class="flex-1 py-2.5 bg-church-600 hover:bg-church-700 text-white font-medium rounded-xl text-xs transition shadow-sm text-center">
+                            <i class="fa-solid fa-book-open mr-1.5"></i> Читать
+                        </button>
+                        <button onclick="downloadBook('Любимые библейские истории в картинках')" class="px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-800 font-medium rounded-xl text-xs transition border border-slate-200 shadow-sm" title="Скачать PDF">
+                            <i class="fa-solid fa-download"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Контакты и Карта (Contacts & Prayer Form) -->
+    <section id="contacts" class="py-20 bg-church-cream">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-xs font-semibold uppercase tracking-wider text-church-600 bg-blue-50 px-3 py-1 rounded-full">Свяжитесь с нами</span>
+                <h2 class="text-3xl sm:text-4xl font-bold font-serif text-slate-900 mt-3 mb-4">Контакты и молитвенные нужды</h2>
+                <p class="text-slate-600">Мы всегда рады ответить на ваши вопросы или помолиться вместе с вами о вашей нужде.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+                <!-- Информация и Карта -->
+                <div class="lg:col-span-6 space-y-8">
+                    <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+                        <h3 class="text-2xl font-serif font-bold text-slate-900">Адрес храма</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-start gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-blue-50 text-church-600 flex items-center justify-center shrink-0 mt-1">
+                                    <i class="fa-solid fa-location-dot"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-slate-900 text-sm">Наш адрес</h4>
+                                    <p class="text-slate-600 text-sm">ул. Благодатная, 15, г. Центральный</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-blue-50 text-church-600 flex items-center justify-center shrink-0 mt-1">
+                                    <i class="fa-solid fa-phone"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-slate-900 text-sm">Телефон канцелярии</h4>
+                                    <p class="text-slate-600 text-sm">+7 (999) 123-45-67</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-blue-50 text-church-600 flex items-center justify-center shrink-0 mt-1">
+                                    <i class="fa-solid fa-envelope"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-slate-900 text-sm">Электронная почта</h4>
+                                    <p class="text-slate-600 text-sm">info@blagodat-church.ru</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Интерактивная карта (Заглушка имитации карты) -->
+                    <div class="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm h-64 relative group">
+                        <div class="absolute inset-0 bg-slate-200 flex items-center justify-center">
+                            <img src="https://placehold.co/800x400/e2e8f0/475569?text=Интерактивная+карта+проезда" alt="Карта" class="w-full h-full object-cover">
+                        </div>
+                        <div class="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition">
+                            <span class="px-6 py-3 bg-white text-slate-900 rounded-xl font-medium text-sm shadow-xl">Открыть в Яндекс.Картах / Google Maps</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Форма молитвенной просьбы -->
+                <div class="lg:col-span-6">
+                    <div class="bg-white p-8 lg:p-10 rounded-3xl border border-slate-100 shadow-sm">
+                        <h3 class="text-2xl font-serif font-bold text-slate-900 mb-2">Написать молитвенную просьбу</h3>
+                        <p class="text-slate-500 text-sm mb-6">Наша пасторская команда и молитвенная группа будут рады поддержать вас в молитве.</p>
+                        
+                        <form onsubmit="handlePrayerSubmit(event)" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Ваше имя</label>
+                                <input type="text" required placeholder="Иван" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-church-accent text-sm">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Телефон или Email для связи</label>
+                                <input type="text" required placeholder="+7 (...) или email@mail.ru" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-church-accent text-sm">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Ваша нужда или вопрос</label>
+                                <textarea rows="4" required placeholder="Напишите вашу молитвенную просьбу здесь..." class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-church-accent text-sm"></textarea>
+                            </div>
+
+                            <button type="submit" class="w-full py-3.5 bg-church-600 hover:bg-church-700 text-white font-medium rounded-xl transition shadow-lg shadow-blue-500/20 text-sm">
+                                Отправить просьбу
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Подвал (Footer) -->
+    <footer class="bg-slate-900 text-white pt-16 pb-12 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md">
+                            <i class="fa-solid fa-church text-lg"></i>
+                        </div>
+                        <span class="font-serif text-lg font-bold">Благодать</span>
+                    </div>
+                    <p class="text-slate-400 text-sm leading-relaxed">
+                        Христианская церковь «Благодать». Место веры, надежды и безусловной Божьей любви для каждого человека.
+                    </p>
+                </div>
+
+                <div>
+                    <h4 class="font-serif font-bold text-base mb-4 text-slate-200">Быстрые ссылки</h4>
+                    <ul class="space-y-2.5 text-sm text-slate-400">
+                        <li><a href="#about" class="hover:text-white transition">О нас и вероучение</a></li>
+                        <li><a href="#services-media" class="hover:text-white transition">Богослужения и медиа</a></li>
+                        <li><a href="#ministries" class="hover:text-white transition">Служения церкви</a></li>
+                        <li><a href="#library" class="hover:text-white transition">Духовная библиотека</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-serif font-bold text-base mb-4 text-slate-200">Социальные сети</h4>
+                    <p class="text-slate-400 text-sm mb-4">Следите за нашей жизнью и новыми трансляциями в соцсетях:</p>
+                    <div class="flex items-center gap-3">
+                        <a href="#" onclick="showToast('Переход в YouTube')" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-church-600 flex items-center justify-center text-white transition">
+                            <i class="fa-brands fa-youtube"></i>
+                        </a>
+                        <a href="#" onclick="showToast('Переход в Telegram')" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-church-600 flex items-center justify-center text-white transition">
+                            <i class="fa-brands fa-telegram"></i>
+                        </a>
+                        <a href="#" onclick="showToast('Переход во ВКонтакте')" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-church-600 flex items-center justify-center text-white transition">
+                            <i class="fa-brands fa-vk"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="font-serif font-bold text-base mb-4 text-slate-200">Подписка</h4>
+                    <p class="text-slate-400 text-sm mb-4">Получайте расписание и новости общины на email.</p>
+                    <button onclick="toggleSubscribeModal(true)" class="w-full py-3 bg-church-600 hover:bg-church-700 text-white font-medium rounded-xl text-sm transition shadow-md">
+                        Подписаться на новости
+                    </button>
+                </div>
+            </div>
+
+            <!-- Нижняя панель с общим счетчиком посетителей -->
+            <div class="pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+                <p>&copy; 2026 Христианская церковь «Благодать». Все права защищены.</p>
+                <div class="flex items-center gap-2 px-4 py-2 bg-slate-800/80 rounded-xl border border-slate-700/60">
+                    <i class="fa-solid fa-users text-church-accent"></i>
+                    <span>Посетителей сайта: <strong id="visitor-counter" class="text-white font-bold">1 284</strong></span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript логика -->
+    <script>
+        // Инициализация при загрузке страницы
+        window.onload = function() {
+            // Увеличиваем общий счетчик посетителей сайта на 1 при каждом открытии
+            let visitors = localStorage.getItem('church_site_visitors');
+            if (!visitors) {
+                visitors = 1284;
+            } else {
+                visitors = parseInt(visitors) + 1;
+            }
+            localStorage.setItem('church_site_visitors', visitors);
+            document.getElementById('visitor-counter').textContent = visitors.toLocaleString('ru-RU');
+
+            // Загружаем счетчик использования библиотеки
+            let libCount = localStorage.getItem('church_lib_counter');
+            if (!libCount) {
+                libCount = 142;
+            }
+            document.getElementById('library-counter').textContent = libCount;
+        }
+
+        // Мобильное меню
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const icon = document.getElementById('mobile-menu-icon');
+            menu.classList.toggle('hidden');
+            if (menu.classList.contains('hidden')) {
+                icon.className = 'fa-solid fa-bars text-xl';
+            } else {
+                icon.className = 'fa-solid fa-xmark text-xl';
+            }
+        }
+
+        // Модальное окно подписки
+        function toggleSubscribeModal(show) {
+            const modal = document.getElementById('subscribe-modal');
+            if (show) {
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function handleSubscribe(event) {
+            event.preventDefault();
+            toggleSubscribeModal(false);
+            showToast('Спасибо за подписку на рассылку церкви!');
+        }
+
+        // Отправка молитвенной просьбы
+        function handlePrayerSubmit(event) {
+            event.preventDefault();
+            event.target.reset();
+            showToast('Ваша молитвенная просьба успешно отправлена пастору.');
+        }
+
+        // Модальное окно чтения книг онлайн
+        function openReader(title, text) {
+            document.getElementById('reader-title').textContent = title;
+            document.getElementById('reader-content').innerHTML = `<p class="whitespace-pre-line">${text}</p>`;
+            document.getElementById('reader-modal').classList.remove('hidden');
+            
+            // Увеличиваем счетчик использования библиотеки
+            incrementLibraryCounter();
+        }
+
+        function closeReader() {
+            document.getElementById('reader-modal').classList.add('hidden');
+        }
+
+        // Скачивание книги
+        function downloadBook(bookTitle) {
+            showToast(`Началась загрузка книги: "${bookTitle}" (.PDF)`);
+            incrementLibraryCounter();
+        }
+
+        // Увеличение счетчика библиотеки
+        function incrementLibraryCounter() {
+            let libCount = parseInt(localStorage.getItem('church_lib_counter') || '142') + 1;
+            localStorage.setItem('church_lib_counter', libCount);
+            document.getElementById('library-counter').textContent = libCount;
+        }
+
+        // Всплывающие уведомления (Тосты)
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toast-message');
+            msgEl.textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
